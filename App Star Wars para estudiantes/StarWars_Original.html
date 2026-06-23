@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universo Star Wars</title>
+    <style>
+        /* Estilos Generales con estética espacial */
+        body {
+            background-color: #000;
+            background-image: radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+                              radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
+                              radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px);
+            background-size: 550px 550px, 350px 350px, 250px 250px;
+            background-position: 0 0, 40px 60px, 130px 270px;
+            color: #f5f5f5;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Encabezado */
+        header {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .logo {
+            color: #FFE81F; /* El mítico amarillo de Star Wars */
+            font-size: 3.5rem;
+            font-weight: 900;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(255, 232, 31, 0.5);
+            margin: 0;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 1.2rem;
+            letter-spacing: 3px;
+            margin-top: 10px;
+        }
+
+        /* Navegación */
+        nav {
+            display: flex;
+            justify-content: center;
+            background-color: rgba(20, 20, 20, 0.8);
+            border-top: 2px solid #FFE81F;
+            border-bottom: 2px solid #FFE81F;
+            sticky: top;
+        }
+
+        nav a {
+            color: #fff;
+            padding: 15px 25px;
+            text-decoration: none;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+        }
+
+        nav a:hover {
+            color: #FFE81F;
+            background-color: rgba(255, 232, 31, 0.1);
+        }
+
+        /* Contenedor Principal */
+        .container {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        /* Secciones del Lore (Lado Luminoso vs Oscuro) */
+        .factions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .factions {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background-color: rgba(15, 15, 15, 0.85);
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 30px;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .jedi-card {
+            border-left: 5px solid #0066cc; /* Azul Jedi */
+        }
+
+        .jedi-card:hover {
+            border-color: #0066cc;
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 102, 204, 0.2);
+        }
+
+        .sith-card {
+            border-left: 5px solid #ff0000; /* Rojo Sith */
+        }
+
+        .sith-card:hover {
+            border-color: #ff0000;
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(255, 0, 0, 0.2);
+        }
+
+        h2 {
+            color: #fff;
+            font-size: 1.8rem;
+            margin-top: 0;
+        }
+
+        .jedi-card h2 { text-shadow: 0 0 5px rgba(0, 102, 204, 0.5); }
+        .sith-card h2 { text-shadow: 0 0 5px rgba(255, 0, 0, 0.5); }
+
+        p {
+            line-height: 1.6;
+            color: #ccc;
+        }
+
+        /* Frase Célebre */
+        .quote-section {
+            text-align: center;
+            margin: 60px 0;
+            padding: 30px;
+            background-color: rgba(255, 232, 31, 0.03);
+            border-radius: 8px;
+            border: 1px dashed #FFE81F;
+        }
+
+        .quote {
+            font-style: italic;
+            font-size: 1.5rem;
+            color: #FFE81F;
+        }
+
+        .author {
+            margin-top: 10px;
+            font-size: 1rem;
+            color: #888;
+            text-transform: uppercase;
+        }
+
+        /* Pie de página */
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: #555;
+            font-size: 0.8rem;
+            border-top: 1px solid #222;
+            margin-top: 80px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1 class="logo">Star Wars</h1>
+        <div class="subtitle">Una galaxia muy, muy lejana...</div>
+    </header>
+
+    <nav>
+        <a href="#inicio">Inicio</a>
+        <a href="#facciones">Facciones</a>
+        <a href="#filosofia">Filosofía</a>
+    </nav>
+
+    <div class="container">
+        
+        <section id="inicio" style="text-align: center; margin-bottom: 50px;">
+            <h2>El Equilibrio de la Fuerza</h2>
+            <p style="max-width: 700px; margin: 0 auto;">
+                La Fuerza es un campo de energía creado por todas las cosas vivas. Nos rodea, nos penetra, y mantiene unida a la galaxia. Su destino depende de la constante lucha entre la luz y la oscuridad.
+            </p>
+        </section>
+
+        <section id="facciones" class="factions">
+            <div class="card jedi-card">
+                <h2>El Lado Luminoso</h2>
+                <p><strong>Los Jedi</strong> son los guardianes de la paz y la justicia en la galaxia. Utilizan la Fuerza para el conocimiento y la defensa, nunca para el ataque. Su camino se basa en la calma, la compasión y el desapego emocional.</p>
+                <p><em>Arma característica: Sable de luz azul o verde.</em></p>
+            </div>
+
+            <div class="card sith-card">
+                <h2>El Lado Oscuro</h2>
+                <p><strong>Los Sith</strong> canalizan sus emociones más intensas (el odio, la ira, el miedo y la pasión) para obtener un poder absoluto de la Fuerza. Buscan el control individual y la dominación mediante la fuerza y el conflicto.</p>
+                <p><em>Arma característica: Sable de luz rojo.</em></p>
+            </div>
+        </section>
+
+        <section id="filosofia" class="quote-section">
+            <p class="quote">"Hazlo o no lo hagas, pero no lo intentes."</p>
+            <p class="author">- Maestro Yoda</p>
+        </section>
+
+    </div>
+
+    <footer>
+        <p>© 2026 Universo Star Wars - Hecho por un fan de la galaxia.</p>
+    </footer>
+
+</body>
+</html>

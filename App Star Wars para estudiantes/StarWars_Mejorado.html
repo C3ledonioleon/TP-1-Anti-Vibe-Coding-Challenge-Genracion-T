@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Star Wars Holocron Archive</title>
+    <style>
+        /* --- DISEÑO Y VARIABLES --- */
+        :root {
+            --bg-color: #0a0a0c;
+            --card-bg: #16161a;
+            --sw-yellow: #ffe300;
+            --text-color: #e0e0e0;
+            --text-muted: #a0a0a5;
+            --saber-blue: #00d2ff;
+            --error-red: #ff3333;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            padding-bottom: 50px;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+                        radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px);
+            background-size: 550px 550px, 350px 350px;
+            background-position: 0 0, 40px 60px;
+            opacity: 0.2;
+            z-index: -1;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        header h1 {
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--sw-yellow);
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(255, 227, 0, 0.5);
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        /* --- CONTROLES Y FILTROS --- */
+        .controls-container {
+            max-width: 1000px;
+            margin: 0 auto 30px auto;
+            padding: 0 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: 2px solid var(--text-muted);
+            color: var(--text-color);
+            padding: 10px 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: var(--transition);
+            text-transform: uppercase;
+        }
+
+        .tab-btn:hover {
+            border-color: var(--sw-yellow);
+            color: var(--sw-yellow);
+            box-shadow: 0 0 10px rgba(255, 227, 0, 0.2);
+        }
+
+        .tab-btn.active {
+            background-color: var(--sw-yellow);
+            border-color: var(--sw-yellow);
+            color: #000;
+            box-shadow: 0 0 15px rgba(255, 227, 0, 0.4);
+        }
+
+        .search-bar {
+            position: relative;
+            max-width: 500px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 12px 20px;
+            background-color: var(--card-bg);
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            border-color: var(--saber-blue);
+            box-shadow: 0 0 10px rgba(0, 210, 255, 0.3);
+        }
+
+        /* --- GRID Y CARDS --- */
+        .results-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid #25252b;
+            border-radius: 12px;
+            padding: 25px;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background-color: var(--saber-blue);
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+            border-color: #383842;
+        }
+
+        .card:hover::before {
+            background-color: var(--sw-yellow);
+        }
+
+        .card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: #fff;
+            letter-spacing: 0.5px;
+        }
+
+        .card-prop {
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .card-prop span:first-child {
+            color: var(--text-muted);
+        }
+
+        .card-prop span:last-child {
+            font-weight: 600;
+            color: #f0f0f0;
+            text-align: right;
+        }
+
+        /* --- MANEJO DE CARGA Y ERROR --- */
+        .loading-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 50px 0;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 227, 0, 0.1);
+            border-top-color: var(--sw-yellow);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            background-color: rgba(255, 51, 51, 0.1);
+            border: 1px solid var(--error-red);
+            border-radius: 8px;
+            max-width: 500px;
+            margin: 20px auto;
+        }
+
+        .error-state h4 {
+            color: var(--error-red);
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .btn-retry {
+            background-color: var(--error-red);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            margin-top: 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: var(--transition);
+        }
+
+        .btn-retry:hover {
+            background-color: #cc0000;
+        }
+
+        .no-results {
+            grid-column: 1 / -1;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            padding: 40px;
+        }
+
+        @media (max-width: 600px) {
+            header h1 { font-size: 2rem; }
+            .tabs { flex-direction: column; align-items: stretch; }
+            .tab-btn { text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Star Wars</h1>
+        <p>Holocron Data Archive</p>
+    </header>
+
+    <main>
+        <div class="controls-container">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchEntity('people')">Personajes</button>
+                <button class="tab-btn" onclick="switchEntity('planets')">Planetas</button>
+                <button class="tab-btn" onclick="switchEntity('starships')">Naves</button>
+            </div>
+
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Buscar en el archivo..." oninput="handleSearch()">
+            </div>
+        </div>
+
+        <div class="results-grid" id="resultsGrid">
+            </div>
+    </main>
+
+    <script>
+        const state = {
+            currentEntity: 'people',
+            searchTerm: '',
+            cache: {
+                people: [],
+                planets: [],
+                starships: []
+            },
+            isLoading: false,
+            error: null
+        };
+
+        // Cambiado a un espejo alternativo altamente disponible con CORS habilitado por defecto
+        const BASE_URL = 'https://swapi.py4e.com/api';
+
+        async function init() {
+            await fetchData();
+        }
+
+        async function switchEntity(entity) {
+            if (state.currentEntity === entity) return;
+            
+            state.currentEntity = entity;
+            state.searchTerm = '';
+            document.getElementById('searchInput').value = '';
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent.toLowerCase().includes(
+                    entity === 'people' ? 'personajes' : entity === 'planets' ? 'planetas' : 'naves'
+                ));
+            });
+
+            await fetchData();
+        }
+
+        function handleSearch() {
+            state.searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            render();
+        }
+
+        async function fetchData() {
+            if (state.cache[state.currentEntity].length > 0) {
+                state.error = null;
+                render();
+                return;
+            }
+
+            state.isLoading = true;
+            state.error = null;
+            render();
+
+            try {
+                const response = await fetch(`${BASE_URL}/${state.currentEntity}/`);
+                
+                if (!response.ok) {
+                    throw new Error(`Error de red: ${response.status} ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                state.cache[state.currentEntity] = data.results;
+            } catch (err) {
+                state.error = `No se pudieron cargar los datos de la galaxia. Detalle: ${err.message}`;
+                console.error("SWAPI Fetch Error:", err);
+            } finally {
+                state.isLoading = false;
+                render();
+            }
+        }
+
+        function render() {
+            const grid = document.getElementById('resultsGrid');
+            grid.innerHTML = '';
+
+            if (state.isLoading) {
+                grid.innerHTML = `
+                    <div class="loading-state">
+                        <div class="spinner"></div>
+                        <p>Sincronizando con los archivos de Coruscant...</p>
+                    </div>`;
+                return;
+            }
+
+            if (state.error) {
+                grid.innerHTML = `
+                    <div class="error-state">
+                        <h4>¡Alerta de Transmisión!</h4>
+                        <p>${state.error}</p>
+                        <button class="btn-retry" onclick="fetchData()">Reintentar Conexión</button>
+                    </div>`;
+                return;
+            }
+
+            const rawData = state.cache[state.currentEntity];
+            const filteredData = rawData.filter(item => 
+                item.name.toLowerCase().includes(state.searchTerm)
+            );
+
+            if (filteredData.length === 0) {
+                grid.innerHTML = `<div class="no-results">No se encontraron registros en este cuadrante.</div>`;
+                return;
+            }
+
+            filteredData.forEach(item => {
+                grid.appendChild(createCard(item, state.currentEntity));
+            });
+        }
+
+        function createCard(data, type) {
+            const card = document.createElement('div');
+            card.className = 'card';
+
+            let propertiesHTML = '';
+
+            if (type === 'people') {
+                propertiesHTML = `
+                    <div class="card-prop"><span>Año Nacimiento:</span> <span>${data.birth_year}</span></div>
+                    <div class="card-prop"><span>Género:</span> <span>${translate(data.gender)}</span></div>
+                    <div class="card-prop"><span>Altura:</span> <span>${data.height} cm</span></div>
+                    <div class="card-prop"><span>Color Ojos:</span> <span>${translate(data.eye_color)}</span></div>
+                `;
+            } else if (type === 'planets') {
+                propertiesHTML = `
+                    <div class="card-prop"><span>Clima:</span> <span>${translate(data.climate)}</span></div>
+                    <div class="card-prop"><span>Terreno:</span> <span>${translate(data.terrain)}</span></div>
+                    <div class="card-prop"><span>Población:</span> <span>${formatNumber(data.population)}</span></div>
+                    <div class="card-prop"><span>Gravedad:</span> <span>${data.gravity}</span></div>
+                `;
+            } else if (type === 'starships') {
+                propertiesHTML = `
+                    <div class="card-prop"><span>Modelo:</span> <span>${data.model}</span></div>
+                    <div class="card-prop"><span>Clase:</span> <span>${data.starship_class}</span></div>
+                    <div class="card-prop"><span>Costo:</span> <span>${formatNumber(data.cost_in_credits)} créditos</span></div>
+                    <div class="card-prop"><span>Hipermotor:</span> <span>${data.hyperdrive_rating}</span></div>
+                `;
+            }
+
+            card.innerHTML = `
+                <h3>${data.name}</h3>
+                <div class="card-details">
+                    ${propertiesHTML}
+                </div>
+            `;
+            return card;
+        }
+
+        function translate(word) {
+            const dictionary = {
+                'male': 'Masculino', 'female': 'Femenino', 'n/a': 'N/A', 'none': 'Ninguno',
+                'temperate': 'Templado', 'arid': 'Árido', 'murky': 'Turbio', 'frozen': 'Congelado',
+                'desert': 'Desierto', 'grasslands': 'Praderas', 'mountains': 'Montañas',
+                'blue': 'Azul', 'yellow': 'Amarillo', 'red': 'Rojo', 'brown': 'Marrón', 'unknown': 'Desconocido'
+            };
+            return dictionary[word.toLowerCase()] || word;
+        }
+
+        function formatNumber(num) {
+            if (isNaN(num)) return num;
+            return Number(num).toLocaleString();
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

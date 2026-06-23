@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokédex Premium App</title>
+    <style>
+        /* --- VARIABLES DE DISEÑO (TEMA CLARO / OSCURO) --- */
+        :root {
+            --bg-primary: #f5f7fa;
+            --bg-card: #ffffff;
+            --text-main: #2d3748;
+            --text-muted: #718096;
+            --primary: #ef5350;
+            --primary-hover: #e53935;
+            --accent-fav: #ffb300;
+            --border-color: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a202c;
+            --bg-card: #2d3748;
+            --text-main: #f7fafc;
+            --text-muted: #a0aec0;
+            --border-color: #4a5568;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+        }
+
+        /* --- ESTILOS GENERALES --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            transition: background-color 0.25s ease, color 0.25s ease;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding-bottom: 50px;
+        }
+
+        /* --- HEADER --- */
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: 1px solid white;
+            color: white;
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .nav-btn.active, .nav-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* --- UTILS / CONTENEDORES --- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* --- SEARCH & FILTERS BAR --- */
+        .search-bar {
+            display: flex;
+            gap: 1rem;
+            margin: 2rem auto;
+            max-width: 800px;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 250px;
+            padding: 0.8rem 1.2rem;
+            border-radius: 25px;
+            border: 2px solid var(--border-color);
+            background-color: var(--bg-card);
+            color: var(--text-main);
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary);
+        }
+
+        .sort-select {
+            padding: 0.8rem 1.2rem;
+            border-radius: 25px;
+            border: 2px solid var(--border-color);
+            background-color: var(--bg-card);
+            color: var(--text-main);
+            font-size: 1rem;
+            cursor: pointer;
+            outline: none;
+        }
+
+        /* --- GRID DE POKÉMON --- */
+        .pokemon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 2rem;
+            padding: 1rem 0;
+        }
+
+        /* --- CARD POKÉMON --- */
+        .card {
+            background-color: var(--bg-card);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            border: 1px solid var(--border-color);
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fav-star {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 1.6rem;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .poke-id {
+            color: var(--text-muted);
+            font-weight: bold;
+            font-size: 0.9rem;
+            align-self: flex-start;
+        }
+
+        .poke-img {
+            width: 140px;
+            height: 140px;
+            object-fit: contain;
+            margin: 0.5rem 0;
+        }
+
+        .poke-name {
+            text-transform: capitalize;
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* --- BADGES DE TIPOS --- */
+        .types-container {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .type-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Paleta PokéAPI */
+        .type-grass { background-color: #48bb78; }
+        .type-fire { background-color: #f56565; }
+        .type-water { background-color: #4299e1; }
+        .type-bug { background-color: #9f7aea; }
+        .type-normal { background-color: #a0aec0; }
+        .type-poison { background-color: #ed64a6; }
+        .type-electric { background-color: #ecc94b; color: #1a202c; }
+        .type-ground { background-color: #dd6b20; }
+        .type-fairy { background-color: #f687b3; }
+        .type-fighting { background-color: #e53e3e; }
+        .type-psychic { background-color: #d53f8c; }
+        .type-rock { background-color: #ecc94b; }
+        .type-ghost { background-color: #6b46c1; }
+        .type-ice { background-color: #319795; }
+        .type-dragon { background-color: #553c9a; }
+
+        /* --- METADATA --- */
+        .meta-info {
+            display: flex;
+            gap: 1rem;
+            width: 100%;
+            justify-content: space-around;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.8rem;
+        }
+
+        /* --- STATS BASE --- */
+        .stats-container {
+            width: 100%;
+            font-size: 0.8rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .stat-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .stat-name {
+            width: 60px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .stat-bar-bg {
+            flex: 1;
+            background-color: var(--border-color);
+            height: 6px;
+            border-radius: 3px;
+            margin: 0 8px;
+            overflow: hidden;
+        }
+
+        .stat-bar-fill {
+            background-color: var(--primary);
+            height: 100%;
+            border-radius: 3px;
+        }
+
+        .stat-value {
+            width: 25px;
+            text-align: right;
+            font-weight: bold;
+        }
+
+        /* --- LOAD MORE --- */
+        .load-more-container {
+            display: flex;
+            justify-content: center;
+            margin: 3rem 0;
+        }
+
+        .btn-load-more {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+        }
+
+        .btn-load-more:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* --- FEEDBACKS (LOADER, ERROR, EMPTY) --- */
+        .loader {
+            text-align: center;
+            padding: 2rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .error-message {
+            background-color: #ffebee;
+            color: #c62828;
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+            margin: 1rem auto;
+            max-width: 600px;
+            font-weight: bold;
+        }
+
+        .empty-message {
+            text-align: center;
+            grid-column: 1 / -1;
+            color: var(--text-muted);
+            padding: 3rem;
+            font-size: 1.1rem;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-container">
+            <h1>⚡ Pokédex Premium</h1>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <nav class="nav-tabs">
+                    <button class="nav-btn active" id="btn-view-all">Todos</button>
+                    <button class="nav-btn" id="btn-view-favs">Favoritos (<span id="fav-count">0</span>)</button>
+                </nav>
+                <button class="theme-toggle" id="theme-btn">🌙</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="search-bar">
+            <input type="text" class="search-input" id="search-input" placeholder="Buscar por nombre o ID en tiempo real...">
+            <select class="sort-select" id="sort-select">
+                <option value="id">Ordenar por N°</option>
+                <option value="name">Ordenar por Nombre</option>
+            </select>
+        </div>
+
+        <div id="error-container" class="hidden"></div>
+        
+        <div class="pokemon-grid" id="pokemon-grid"></div>
+
+        <div id="main-loader" class="loader hidden">Cargando la Pokédex...</div>
+
+        <div class="load-more-container" id="load-more-container">
+            <button class="btn-load-more" id="btn-load-more">Cargar más Pokémon</button>
+        </div>
+    </div>
+
+    <script>
+        // --- SERVICIO API (Centraliza la lógica de red) ---
+        const PokeApiService = {
+            BASE_URL: 'https://pokeapi.co/api/v2',
+
+            async fetchList(limit = 20, offset = 0) {
+                const response = await fetch(`${this.BASE_URL}/pokemon?limit=${limit}&offset=${offset}`);
+                if (!response.ok) throw new Error('Error al conectar con la PokéAPI.');
+                const data = await response.json();
+                
+                // Mapeo concurrente para obtener detalles extendidos de cada Pokémon
+                const promises = data.results.map(async (p) => {
+                    const res = await fetch(p.url);
+                    return res.ok ? res.json() : null;
+                });
+                const details = await Promise.all(promises);
+                return {
+                    next: data.next,
+                    results: details.filter(d => d !== null)
+                };
+            },
+
+            async fetchOne(query) {
+                const response = await fetch(`${this.BASE_URL}/pokemon/${query.trim().toLowerCase()}`);
+                if (!response.ok) {
+                    if (response.status === 404) throw new Error('Pokémon no encontrado.');
+                    throw new Error('Error en el servidor.');
+                }
+                return await response.json();
+            }
+        };
+
+        // --- ESTADO GLOBAL DE LA APLICACIÓN ---
+        const AppState = {
+            view: 'all', // 'all' | 'favorites'
+            theme: localStorage.getItem('poke_theme') || 'light',
+            pokemonList: [],
+            favorites: JSON.parse(localStorage.getItem('poke_favorites')) || [],
+            searchTerm: '',
+            sortBy: 'id',
+            offset: 0,
+            limit: 20,
+            hasMore: true,
+            loading: false
+        };
+
+        // --- SELECTORES DEL DOM ---
+        const DOM = {
+            grid: document.getElementById('pokemon-grid'),
+            searchInput: document.getElementById('search-input'),
+            sortSelect: document.getElementById('sort-select'),
+            btnViewAll: document.getElementById('btn-view-all'),
+            btnViewFavs: document.getElementById('btn-view-favs'),
+            favCount: document.getElementById('fav-count'),
+            themeBtn: document.getElementById('theme-btn'),
+            loader: document.getElementById('main-loader'),
+            error: document.getElementById('error-container'),
+            loadMoreContainer: document.getElementById('load-more-container'),
+            btnLoadMore: document.getElementById('btn-load-more')
+        };
+
+        // --- INICIALIZACIÓN ---
+        document.addEventListener('DOMContentLoaded', () => {
+            applyTheme();
+            updateFavCountUI();
+            loadPokemonsIncremental();
+            setupEventListeners();
+        });
+
+        // --- MANEJADORES DE EVENTOS ---
+        function setupEventListeners() {
+            // Paginación
+            DOM.btnLoadMore.addEventListener('click', () => {
+                AppState.offset += AppState.limit;
+                loadPokemonsIncremental();
+            });
+
+            // Buscador con debounce manual
+            let debounceTimer;
+            DOM.searchInput.addEventListener('input', (e) => {
+                AppState.searchTerm = e.target.value.trim().toLowerCase();
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    handleSearch();
+                }, 400); 
+            });
+
+            // Ordenamiento
+            DOM.sortSelect.addEventListener('change', (e) => {
+                AppState.sortBy = e.target.value;
+                render();
+            });
+
+            // Cambio de Vistas
+            DOM.btnViewAll.addEventListener('click', () => switchView('all'));
+            DOM.btnViewFavs.addEventListener('click', () => switchView('favorites'));
+
+            // Toggle de color de fondo
+            DOM.themeBtn.addEventListener('click', () => {
+                AppState.theme = AppState.theme === 'light' ? 'dark' : 'light';
+                applyTheme();
+            });
+        }
+
+        // --- FLUJOS DE TRABAJO Y ASINCRONÍA ---
+        async function loadPokemonsIncremental() {
+            if (AppState.loading) return;
+            showLoader(true);
+            showError(null);
+
+            try {
+                const data = await PokeApiService.fetchList(AppState.limit, AppState.offset);
+                AppState.pokemonList = [...AppState.pokemonList, ...data.results];
+                AppState.hasMore = data.next !== null;
+                render();
+            } catch (err) {
+                showError(err.message);
+            } finally {
+                showLoader(false);
+            }
+        }
+
+        async function handleSearch() {
+            if (AppState.searchTerm === '') {
+                showError(null);
+                render();
+                return;
+            }
+
+            // Si estamos en favoritos, filtramos puramente de forma local en el renderizado
+            if (AppState.view === 'favorites') {
+                render();
+                return;
+            }
+
+            // Si estamos en la pestaña global, buscamos si ya existe en memoria local
+            const localMatch = AppState.pokemonList.some(p => p.name.includes(AppState.searchTerm) || String(p.id) === AppState.searchTerm);
+            if (localMatch) {
+                showError(null);
+                render();
+                return;
+            }
+
+            // Si no está en memoria, atacamos directamente al endpoint individual de la API
+            showLoader(true);
+            showError(null);
+            try {
+                const singlePoke = await PokeApiService.fetchOne(AppState.searchTerm);
+                // Si lo encuentra, lo sumamos transitoriamente para pintarlo
+                if (!AppState.pokemonList.some(p => p.id === singlePoke.id)) {
+                    AppState.pokemonList.push(singlePoke);
+                }
+                render();
+            } catch (err) {
+                // Forzamos renderizado vacío con mensaje limpio
+                DOM.grid.innerHTML = `<p class="empty-message">❌ No se encontraron resultados para "${AppState.searchTerm}".</p>`;
+                DOM.loadMoreContainer.classList.add('hidden');
+            } finally {
+                showLoader(false);
+            }
+        }
+
+        function switchView(targetView) {
+            AppState.view = targetView;
+            DOM.searchInput.value = '';
+            AppState.searchTerm = '';
+            
+            if (targetView === 'all') {
+                DOM.btnViewAll.classList.add('active');
+                DOM.btnViewFavs.classList.remove('active');
+            } else {
+                DOM.btnViewAll.classList.remove('active');
+                DOM.btnViewFavs.classList.add('active');
+            }
+            render();
+        }
+
+        // --- CONTROLADORES DE MUTACIÓN (FAVORITOS) ---
+        window.toggleFavorite = function(pokemonId) {
+            const favIndex = AppState.favorites.findIndex(p => p.id === pokemonId);
+            
+            if (favIndex > -1) {
+                AppState.favorites.splice(favIndex, 1);
+            } else {
+                // Buscamos la referencia completa del objeto Pokémon desde el pool general
+                const fullObject = AppState.pokemonList.find(p => p.id === pokemonId);
+                if (fullObject) AppState.favorites.push(fullObject);
+            }
+
+            localStorage.setItem('poke_favorites', JSON.stringify(AppState.favorites));
+            updateFavCountUI();
+            render();
+        };
+
+        // --- MOTOR DE PROCESAMIENTO Y RENDERIZADO (UI) ---
+        function render() {
+            DOM.grid.innerHTML = '';
+            
+            // 1. Determinar Pool Base
+            let pool = AppState.view === 'all' ? AppState.pokemonList : AppState.favorites;
+
+            // 2. Aplicar Filtro en Tiempo Real
+            if (AppState.searchTerm !== '') {
+                pool = pool.filter(p => p.name.includes(AppState.searchTerm) || String(p.id) === AppState.searchTerm);
+            }
+
+            // 3. Aplicar Criterio de Ordenamiento
+            pool.sort((a, b) => {
+                if (AppState.sortBy === 'name') return a.name.localeCompare(b.name);
+                return a.id - b.id;
+            });
+
+            // 4. Evaluar Estado Vacío
+            if (pool.length === 0) {
+                DOM.grid.innerHTML = AppState.view === 'all' 
+                    ? `<p class="empty-message">No hay datos disponibles.</p>`
+                    : `<p class="empty-message">⭐ Tu lista de favoritos está vacía.</p>`;
+                DOM.loadMoreContainer.classList.add('hidden');
+                return;
+            }
+
+            // 5. Construcción de Nodos del DOM (Estructura de Componentes Reutilizables)
+            pool.forEach(pokemon => {
+                const isFav = AppState.favorites.some(f => f.id === pokemon.id);
+                const card = document.createElement('div');
+                card.className = 'card';
+                
+                // Procesamiento de Atributos Auxiliares
+                const badgesHTML = pokemon.types.map(t => `<span class="type-badge type-${t.type.name}">${t.type.name}</span>`).join('');
+                const officialImg = pokemon.sprites.other['official-artwork'].front_default || pokemon.sprites.front_default;
+                const primaryAbilities = pokemon.abilities.slice(0, 2).map(a => a.ability.name).join(', ');
+
+                // Subcomponente de Stats encapsulado
+                const statsHTML = pokemon.stats.slice(0, 3).map(s => `
+                    <div class="stat-row">
+                        <span class="stat-name">${s.stat.name.replace('special-', 'sp ')}</span>
+                        <div class="stat-bar-bg">
+                            <div class="stat-bar-fill" style="width: ${Math.min(s.base_stat, 100)}%"></div>
+                        </div>
+                        <span class="stat-value">${s.base_stat}</span>
+                    </div>
+                `).join('');
+
+                card.innerHTML = `
+                    <button class="fav-star" onclick="toggleFavorite(${pokemon.id})">${isFav ? '⭐' : '☆'}</button>
+                    <span class="poke-id">#${String(pokemon.id).padStart(3, '0')}</span>
+                    <img class="poke-img" src="${officialImg}" alt="${pokemon.name}">
+                    <h3 class="poke-name">${pokemon.name}</h3>
+                    <div class="types-container">${badgesHTML}</div>
+                    
+                    <div class="meta-info">
+                        <div><strong>Alt:</strong> ${pokemon.height / 10} m</div>
+                        <div><strong>Peso:</strong> ${pokemon.weight / 10} kg</div>
+                    </div>
+                    
+                    <div style="font-size: 0.8rem; width: 100%; text-align: left; margin-bottom: 0.5rem; color: var(--text-muted);">
+                        <strong style="color: var(--text-main)">Habilidades:</strong> <span style="text-transform: capitalize;">${primaryAbilities}</span>
+                    </div>
+
+                    <div class="stats-container">${statsHTML}</div>
+                `;
+                DOM.grid.appendChild(card);
+            });
+
+            // Control de visibilidad del paginador incremental
+            if (AppState.view === 'all' && AppState.hasMore && AppState.searchTerm === '') {
+                DOM.loadMoreContainer.classList.remove('hidden');
+            } else {
+                DOM.loadMoreContainer.classList.add('hidden');
+            }
+        }
+
+        // --- AYUDANTES DE INTERFAZ (UI UTILS) ---
+        function showLoader(show) {
+            AppState.loading = show;
+            if (show) DOM.loader.classList.remove('hidden');
+            else DOM.loader.classList.add('hidden');
+        }
+
+        function showError(msg) {
+            if (msg) {
+                DOM.error.textContent = `⚠️ Error: ${msg}`;
+                DOM.error.classList.remove('hidden');
+            } else {
+                DOM.error.innerHTML = '';
+                DOM.error.classList.add('hidden');
+            }
+        }
+
+        function updateFavCountUI() {
+            DOM.favCount.textContent = AppState.favorites.length;
+        }
+
+        function applyTheme() {
+            document.documentElement.setAttribute('data-theme', AppState.theme);
+            localStorage.setItem('poke_theme', AppState.theme);
+            DOM.themeBtn.textContent = AppState.theme === 'light' ? '🌙' : '☀️';
+        }
+    </script>
+</body>
+</html>
